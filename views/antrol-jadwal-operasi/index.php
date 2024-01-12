@@ -11,15 +11,12 @@ use yii\grid\GridView;
 use yii\helpers\ArrayHelper;
 use yii\widgets\Pjax;
 
-/** @var yii\web\View $this */
-/** @var app\models\search\AntrolJadwalOperasiSearch $searchModel */
-/** @var yii\data\ActiveDataProvider $dataProvider */
-
 $this->title = 'Antrol Jadwal Operasi';
 $this->params['breadcrumbs'][] = $this->title;
+Pjax::begin(['id' => 'pjform', 'timeout' => false]);
 $this->registerJs($this->render('script.js'));
 ?>
-<?php Pjax::begin(['id' => 'ref']); ?>
+
 <style>
   .tombol {
     display: flex;

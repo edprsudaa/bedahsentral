@@ -12,8 +12,8 @@ use yii\web\JsExpression;
 use yii\widgets\Pjax;
 
 $this->title = 'Registrasi Antrol Jadwal Operasi';
+Pjax::begin(['id' => 'pjform', 'timeout' => false]);
 $this->registerJs($this->render('form_create.js'));
-// Pjax::begin(['id' => 'pjform']);
 ?>
 
 <div class="antrol-jadwal-operasi-form">
@@ -232,5 +232,4 @@ $this->registerJs($this->render('form_create.js'));
 
   <?php ActiveForm::end(); ?>
 </div>
-<?php //Pjax::end(); 
-?>
+<?php Pjax::end(); ?>

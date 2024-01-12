@@ -12,7 +12,7 @@ $(document).ready(function () {
       .html('<i class="fas fa-spinner fa-spin"></i> Proses ...')
       .attr("disabled", true);
 
-    $.pjax.reload({ container: "#ref", timeout: false }); //pjax form
+    $.pjax.reload({ container: "#pjform", timeout: false }); //pjax form
   });
 
   // Listener untuk menangani ketika pjax selesai dilakukan
@@ -55,7 +55,7 @@ $(document).ready(function () {
                   .success(data.desc)
                   .css({ width: "400px", "max-width": "400px" });
                 //reload tabel
-                $.pjax.reload({ container: "#ref", timeout: false });
+                $.pjax.reload({ container: "#pjform", timeout: false });
               } else {
                 toastr
                   .error(data.desc)

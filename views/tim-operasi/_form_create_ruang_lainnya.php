@@ -13,16 +13,15 @@ use kartik\switchinput\SwitchInput;
 // use kartik\typeahead\Typeahead;
 
 $this->title = 'Registrasi Tim Operasi';
+Pjax::begin(['id' => 'pjform', 'timeout' => false]);
+$this->registerJs($this->render('_form_create_ready_lainnya.js'));
 ?>
-<?php \yii\widgets\Pjax::begin(['id' => 'pjform']); ?>
+
 <style>
   .dynamicform_wrapper .form-options-item .form-control {
     font-size: 0.7rem !important;
   }
 </style>
-<?php
-$this->registerJs($this->render('_form_create_ready_lainnya.js'));
-?>
 <hr />
 <?php $form = ActiveForm::begin([
   'id' => 'af',
@@ -280,7 +279,5 @@ $this->registerJs($this->render('_form_create_ready_lainnya.js'));
   </div>
 </div>
 <?php ActiveForm::end(); ?>
-<?php yii\widgets\Pjax::end(); ?>
 <hr />
-<?php
-// $this->registerJs($this->render('_form.js'),View::POS_END);
+<?php Pjax::end(); ?>

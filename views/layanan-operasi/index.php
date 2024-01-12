@@ -14,17 +14,12 @@ use app\models\bedahsentral\TimOperasiDetail;
 use app\models\pendaftaran\Layanan;
 use yii\widgets\Pjax;
 
-// use app\components\Akun;
-/* @var $this yii\web\View */
-/* @var $searchModel app\models\search\LayananIgdSearch */
-/* @var $dataProvider yii\data\ActiveDataProvider */
-
 $this->title = 'Daftar Pasien Operasi';
 $this->params['breadcrumbs'][] = $this->title;
-?>
-<?php
+Pjax::begin(['id' => 'pjform', 'timeout' => false]);
 $this->registerJs($this->render('script.js'));
 ?>
+
 <style>
   .tombol {
     display: flex;
@@ -55,7 +50,6 @@ $this->registerJs($this->render('script.js'));
       <?php } ?>
     </p>
     <div class="layanan-index">
-      <?php Pjax::begin(['id' => 'ref']); ?>
 
       <?php echo GridView::widget([
         'dataProvider' => $dataProvider,
@@ -298,7 +292,7 @@ $this->registerJs($this->render('script.js'));
         ],
       ]); ?>
 
-      <?php Pjax::end(); ?>
     </div>
   </div> <!-- end col -->
 </div>
+<?php Pjax::end(); ?>

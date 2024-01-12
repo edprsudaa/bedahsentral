@@ -12,8 +12,8 @@ use yii\web\JsExpression;
 use yii\widgets\Pjax;
 
 $this->title = 'Update Antrol Jadwal Operasi';
+Pjax::begin(['id' => 'pjform', 'timeout' => false]);
 $this->registerJs($this->render('form_update.js'));
-// Pjax::begin(['id' => 'pjform']);
 ?>
 
 <div class="antrol-jadwal-operasi-form">
@@ -235,5 +235,4 @@ $this->registerJs($this->render('form_update.js'));
 
   <?php ActiveForm::end(); ?>
 </div>
-<?php //Pjax::end(); 
-?>
+<?php Pjax::end(); ?>
