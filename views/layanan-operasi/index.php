@@ -1,0 +1,304 @@
+<?php
+
+use yii\helpers\Url;
+use yii\helpers\Html;
+use yii\grid\GridView;
+use kartik\select2\Select2;
+use kartik\date\DatePicker;
+use app\components\HelperGeneral;
+use app\components\Akun;
+use app\components\HelperSpesial;
+use app\models\bedahsentral\LaporanOperasi;
+use app\models\bedahsentral\TimOperasi;
+use app\models\bedahsentral\TimOperasiDetail;
+use app\models\pendaftaran\Layanan;
+use yii\widgets\Pjax;
+
+// use app\components\Akun;
+/* @var $this yii\web\View */
+/* @var $searchModel app\models\search\LayananIgdSearch */
+/* @var $dataProvider yii\data\ActiveDataProvider */
+
+$this->title = 'Daftar Pasien Operasi';
+$this->params['breadcrumbs'][] = $this->title;
+?>
+<?php
+$this->registerJs($this->render('script.js'));
+?>
+<style>
+  .tombol {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .regis {
+    margin: 0 auto;
+  }
+</style>
+<div class="row">
+  <div class="col-lg-12">
+    <div class="alert alert-warning alert-dismissible">
+      <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+      <h5 style="margin-bottom: 0;"><i class="icon fas fa-syringe"></i> Sekarang sudah bisa registrasi lewat <b>E-MR</b>, silahkan registrasi lewat aplikasi <b>E-MR</b></h5>
+    </div>
+    <p class="tombol">
+      <?php
+      $datalogin = HelperSpesial::getUserLogin();
+      if (!($datalogin['akses_level'] == "DOKTER")) { ?>
+        <a href="<?= Url::to(['tim-operasi/create']) ?>" class="btn btn-info col-md-3 regis">
+          <i class="fas fa-users text-white"></i><span style="font-family: Nunito,sans-serif;"> Registrasi Tim Operasi</span>
+        </a>
+        <!-- Button Refresh -->
+        <button class="btn btn-success" id="refresh">
+          <i class="fas fa-sync"></i> Refresh Data
+        </button>
+      <?php } ?>
+    </p>
+    <div class="layanan-index">
+      <?php Pjax::begin(['id' => 'ref']); ?>
+
+      <?php echo GridView::widget([
+        'dataProvider' => $dataProvider,
+        'filterModel' => $searchModel,
+        'tableOptions' => [
+          'class' => 'table table-sm table-bordered table-hover'
+        ],
+        // 'rowOptions' => function ($model, $index, $key) {
+        //   $url = Url::to(['/site-pasien/index', 'id' => HelperGeneral::hashData($model->id)]);
+        //   return ['id' => $model->id, 'onclick' => 'location.href="' . $url . '"', 'data-toggle' => "tooltip", 'data-placement' => "right", 'data-original-title' => "Klik Untuk Pilih Pasien", 'style' => "cursor:pointer;"];
+        // },
+        'layout' => "{items}\n{summary}\n{pager}",
+        'columns' => [
+          [
+            'class' => 'yii\grid\SerialColumn',
+            'header' => 'NO',
+            'headerOptions' => ['style' => 'text-align: center;'],
+            'contentOptions' => ['style' => 'text-align: center'],
+          ],
+
+          [
+            'attribute' => 'pasien',
+            'label' => 'PASIEN',
+            'format' => 'html',
+            'headerOptions' => ['style' => 'text-align: center;'],
+            'value' => function ($model) {
+              return ($model->registrasi ? ($model->registrasi->pasien ? $model->registrasi->pasien->nama : 'KOSONG') : 'registrasi kosong');
+            },
+            'filterInputOptions' => [
+              'class' => 'form-control',
+              'autofocus' => true,
+              'onFocus' => 'this.select()',
+              'placeholder' => 'Ketik Nama ...'
+            ],
+          ],
+
+          [
+            'attribute' => 'norm',
+            'label' => 'RM',
+            'format' => 'html',
+            'headerOptions' => ['style' => 'text-align: center;width:100px'],
+            'contentOptions' => ['style' => 'text-align: center;width:100px'],
+            'value' => function ($model) {
+              return ($model->registrasi ? ($model->registrasi->pasien ? $model->registrasi->pasien->kode : 'KOSONG') : 'registrasi kosong');
+            },
+            'filterInputOptions' => [
+              'class' => 'form-control',
+              // 'autofocus' => true,
+              // 'onFocus' => 'this.select()',
+              'placeholder' => 'Ketik RM ...'
+            ],
+          ],
+
+          [
+            'attribute' => 'tgl_operasi',
+            'label' => 'TANGGAL OPERASI',
+            'format' => 'html',
+            'headerOptions' => ['style' => 'text-align: center;width:115px'],
+            'contentOptions' => ['style' => 'text-align: center;width:115px'],
+            'value' => function ($model) {
+              // $tim = TimOperasi::find()->where(['to_ok_pl_id' => $model->id])->all();
+              foreach ($model->timOperasi as $key => $value) {
+                // return Yii::$app->formatter->asDate($value->to_tanggal_operasi);
+                return $value->to_tanggal_operasi ? Yii::$app->formatter->asDate($value->to_tanggal_operasi) : "KOSONG";
+              }
+            },
+            // 'filter' => true,
+            'filter' => DatePicker::widget([
+              'model' => $searchModel,
+              'attribute' => 'tgl_operasi',
+              'type' => DatePicker::TYPE_INPUT,
+              'pluginOptions' => [
+                'autoclose' => true,
+                'format' => 'dd-mm-yyyy'
+              ],
+              'options' => ['placeholder' => 'Tanggal']
+            ]),
+          ],
+
+          [
+            'attribute' => 'unit_awal',
+            'label' => 'RUANGAN',
+            'filter' => false,
+            'headerOptions' => ['style' => 'text-align: center;'],
+            'contentOptions' => ['style' => 'text-align: center;'],
+            'format' => 'html',
+            'value' => function ($model) {
+              // $tim = TimOperasi::find()->where(['to_ok_pl_id' => $model->id])->all();
+              // foreach ($tim as $key => $value) {
+              // return ($value->layanan->unit ? str_replace(["RUANG", "POLI"], [""], $value->layanan->unit->nama) : "KOSONG");
+              return ($model->unitAsal ? str_replace(["RUANG", "POLI"], [""], $model->unitAsal->nama) : "KOSONG");
+              // }
+            },
+            'filter' => Select2::widget([
+              'model' => $searchModel,
+              'attribute' => 'unit_awal',
+              'data' => str_replace(["RUANG", "POLI"], [""], HelperSpesial::getListUnitLayanan(null, false, true)),
+              'theme' => Select2::THEME_KRAJEE,
+              'options' => ['placeholder' => 'Pilih ...'],
+              'pluginOptions' => [
+                'allowClear' => true,
+                'dropdownAutoWidth' => true,
+                // 'width' => '190px',
+              ],
+            ]),
+          ],
+
+          [
+            'attribute' => 'unit_tujuan',
+            'label' => 'KAMAR OPERASI',
+            'headerOptions' => ['style' => 'text-align: center;width:150px'],
+            'contentOptions' => ['style' => 'text-align: center;width:150px'],
+            'format' => 'html',
+            'value' => function ($model) {
+              foreach ($model->timOperasi as $key => $timoperasi) {
+                return ($timoperasi->unit ? str_replace("KAMAR OPERASI", "", $timoperasi->unit->nama) : "KOSONG");
+              }
+            },
+            'filter' => Select2::widget([
+              'model' => $searchModel,
+              'attribute' => 'unit_tujuan',
+              'data' => str_replace("KAMAR OPERASI", "", HelperSpesial::getListUnitOK(false, true)),
+              'theme' => Select2::THEME_KRAJEE,
+              'options' => ['placeholder' => 'Pilih ...'],
+              'pluginOptions' => [
+                'allowClear' => true,
+                'dropdownAutoWidth' => true,
+                // 'width' => '190px',
+              ],
+            ]),
+
+          ],
+
+          [
+            'attribute' => 'tindakan_operasi',
+            'label' => 'TINDAKAN',
+            'headerOptions' => ['style' => 'text-align: center;'],
+            'contentOptions' => ['style' => 'text-align: center;'],
+            'value' => function ($model) {
+              // $tim = TimOperasi::find()->where(['to_ok_pl_id' => $model->id])->all();
+              foreach ($model->timOperasi as $key => $value) {
+                // return $value->to_tindakan_operasi;
+                return $value->to_tindakan_operasi ? $value->to_tindakan_operasi : "KOSONG";
+              }
+            },
+            'filterInputOptions' => [
+              'class' => 'form-control',
+              'placeholder' => 'Ketik Tindakan ...'
+            ],
+          ],
+
+          [
+            'attribute' => 'to_created_by',
+            'label' => 'Dibuat Oleh',
+            'visible' => HelperSpesial::getUserLogin()['akses_level'] == "ROOT" ? true : false,
+            'headerOptions' => ['style' => 'text-align: center;'],
+            'contentOptions' => ['style' => 'text-align: center;'],
+            'value' => function ($model) {
+              // $tim = TimOperasi::find()->where(['to_ok_pl_id' => $model->id])->all();
+              foreach ($model->timOperasi as $key => $value) {
+                // return HelperSpesial::getNamaPegawai($value->createdby->pegawai);
+                return $value->createdby ? $value->createdby->username : "KOSONG";
+              }
+            },
+            // 'filterInputOptions' => [
+            //   'class' => 'form-control',
+            //   'placeholder' => 'Ketik Tindakan ...'
+            // ],
+          ],
+
+          [
+            'attribute' => 'status',
+            'label' => 'STATUS',
+            'format' => 'html',
+            'visible' => HelperSpesial::getUserLogin()['akses_level'] == "DOKTER" ? false : true,
+            'headerOptions' => ['style' => 'text-align: center;'],
+            'contentOptions' => ['style' => 'text-align: center;font-size:19px'],
+            'value' => function ($model) {
+              $id_pegawai = Akun::user()->id_pegawai;
+              foreach ($model->timOperasi as $key => $value) {
+                $cek = TimOperasiDetail::find()->where(['tod_pgw_id' => $id_pegawai, 'tod_to_id' => $value->to_id])->one();
+                return ($value->to_created_by == Akun::user()->id) || ($cek) ? '<span class="badge badge-success">Pasien Anda</span>' : '<span class="badge badge-danger">Kamu Belum Terdaftar</span>';
+              }
+            },
+            'filter' => Html::activeDropDownList($searchModel, 'status', [Akun::user()->id_pegawai => 'Pasien Anda'], ['class' => 'form-control', 'prompt' => 'Lihat Semua']),
+          ],
+
+          [
+            'attribute' => 'laporan_operasi',
+            'label' => 'LAPORAN OPERASI',
+            'format' => 'html',
+            'visible' => HelperSpesial::getUserLogin()['akses_level'] == "DOKTER" ? true : false,
+            'headerOptions' => ['style' => 'text-align: center;'],
+            'contentOptions' => ['style' => 'text-align: center;font-size:19px'],
+            'value' => function ($model) {
+              // echo '<pre>';print_r($model);die;
+              // $tim = TimOperasi::find()->where(['to_ok_pl_id' => $model->id])->all();
+              // $id_pegawai = Akun::user()->id_pegawai;
+              foreach ($model->timOperasi as $key => $value) {
+                $cek = LaporanOperasi::find()->where(['lap_op_to_id' => $value->to_id, 'lap_op_final' => 1, 'lap_op_batal' => 0, 'lap_op_created_by' => Akun::user()->id])->one();
+                return ($cek) ? '<span class="badge badge-success">SUDAH FINAL</span>' : '<span class="badge badge-danger">BELUM FINAL</span>';
+              }
+            },
+            // 'filter' => Html::activeDropDownList($searchModel, 'status', [Akun::user()->id_pegawai => 'Pasien Anda'], ['class' => 'form-control', 'prompt' => 'Lihat Semua']),
+          ],
+
+          [
+            'class' => 'yii\grid\ActionColumn',
+            'header' => 'Aksi',
+            'headerOptions' => ['style' => 'width:8%;text-align: center;color:#000;'],
+            'contentOptions' => ['style' => 'text-align: center'],
+            'template' => '{pilih}{delete}',
+            'buttons' => [
+              'delete' => function ($url, $model) {
+                foreach ($model->timOperasi as $key => $value) {
+                  if (($value->to_created_by == Akun::user()->id) || (Akun::user()->username == Yii::$app->params['other']['username_root_bedah_sentral'])) {
+                    $url = Url::to(['/tim-operasi/hapus', 'subid' => $value->to_id]);
+
+                    return '<a href="#" class="btn btn-danger btn-xs btn-delete m-1" data-url="' . $url . '" data-key="tes" data-layanan="index" data-id="0" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="Hapus">
+                      <span class="fas fa-trash fa-xs text-white"></span>
+                    </a>';
+                  }
+                }
+              },
+              'pilih' => function ($url, $model) {
+                foreach ($model->timOperasi as $key => $value) {
+                  $url = Url::to(['/site-pasien/index', 'id' => $model->id, 'tim_operasi_id' => $value->to_id]);
+
+                  return '<a href="#" id="pilih" data-url="' . $url . '" class="btn btn-primary btn-xs m-1" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="Klik Untuk Pilih Pasien" onclick="localStorage.setItem(\'layanan\', \'index\')">
+                    <span class="text-white">PILIH</span>
+                  </a>';
+                }
+              }
+            ]
+          ],
+        ],
+        // 'summaryOptions' => ['class' => 'summary mt-2 mb-2'],
+        'pager' => [
+          'class' => 'app\components\GridPager',
+        ],
+      ]); ?>
+
+      <?php Pjax::end(); ?>
+    </div>
+  </div> <!-- end col -->
+</div>
