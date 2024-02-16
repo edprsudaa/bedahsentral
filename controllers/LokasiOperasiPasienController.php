@@ -185,7 +185,7 @@ class LokasiOperasiPasienController extends Controller
         }
         $save = $this->save($title, $modelLog, $model, []);
         if ($save->status) {
-          return MakeResponse::create(true, $save->msg, ['konfirm_final' => false, 'id' => HelperGeneral::hashData($save->data['mlo_to_id']), 'subid' => $save->data['mlo_id']]);
+          return MakeResponse::create(true, $save->msg, ['konfirm_final' => false, 'id' => $save->data['mlo_to_id'], 'subid' => $save->data['mlo_id']]);
         } else {
           return MakeResponse::create(false, $save->msg);
         }
@@ -215,7 +215,7 @@ class LokasiOperasiPasienController extends Controller
       if ($model->validate()) {
         $save = $this->save($title, $modelLog, $model, [], true, false, false);
         if ($save->status) {
-          return MakeResponse::create(true, $save->msg, ['id' => HelperGeneral::hashData($save->data['mlo_to_id']), 'subid' => $save->data['mlo_id']]);
+          return MakeResponse::create(true, $save->msg, ['id' => $save->data['mlo_to_id'], 'subid' => $save->data['mlo_id']]);
         } else {
           return MakeResponse::create(false, $save->msg);
         }
@@ -354,7 +354,7 @@ class LokasiOperasiPasienController extends Controller
     if ($model->validate()) {
       $save = $this->save($title, $modelLog, $model, [], false, false, true);
       if ($save->status) {
-        return MakeResponse::create(true, $save->msg, ['id' => HelperGeneral::hashData($save->data['mlo_to_id'])]);
+        return MakeResponse::create(true, $save->msg, ['id' => $save->data['mlo_to_id']]);
       } else {
         return MakeResponse::create(false, $save->msg);
       }

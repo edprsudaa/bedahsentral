@@ -5,6 +5,8 @@ return [
   'app' => [
     'id' => 19,
     'shortName' => 'OBS',
+    'namaAwal' => "RESIKAA",
+    'namaAkhir' => "BEDAH SENTRAL",
     'longName' => 'Operasi Bedah Sentral',
     'fullName' => 'Operasi Bedah Sentral',
     'version' => 'V.1.0',

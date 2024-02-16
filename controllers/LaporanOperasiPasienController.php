@@ -49,10 +49,8 @@ class LaporanOperasiPasienController extends Controller
    */
   public function actionIndex($id)
   {
-    $plid = HelperGeneral::convertLayananId($id);
-
     $timoperasi = TimOperasi::find()
-      ->where(['to_ok_pl_id' => $plid, 'to_deleted_at' => null])
+      ->where(['to_ok_pl_id' => $id, 'to_deleted_at' => null])
       ->orderBy(['to_created_at' => SORT_DESC])
       ->one();
 
@@ -138,17 +136,6 @@ class LaporanOperasiPasienController extends Controller
           $m_flag = 'Log ' . $title . ' Gagal Disimpan..';
         }
       }
-      //save doc medis => karna save final
-      // if ($final || $batal) {
-      //   if ($s_flag) {
-      //     $data = \Yii::$app->controller->renderPartial('doc', ['lap_op_id' => $model->lap_op_id]);
-      //     $mdcp_base = MdcpBase::getLayanan($model->timoperasi->to_ok_pl_id);
-      //     $mdcp = MdcpLaporanOperasi::_set($model->lap_op_id, $mdcp_base, [], $data, $batal);
-      //     if (!($s_flag = $mdcp->status)) {
-      //       $m_flag = $mdcp->msg;
-      //     }
-      //   }
-      // }
       //cek finalisasi save
       if ($s_flag) {
         $transaction->commit();
@@ -188,24 +175,14 @@ class LaporanOperasiPasienController extends Controller
     if ($model->load(Yii::$app->request->post())) {
       $model->lap_op_laporan = str_replace(["<<", ">>"], ["<", ">"], $model->lap_op_laporan);
       $model->lap_op_instruksi_prwt_pasca_operasi = str_replace(["<<", ">>"], ["<", ">"], $model->lap_op_instruksi_prwt_pasca_operasi);
-      // $tmp = UploadedFile::getInstance($model, 'label_implan');
 
       if ($model->validate()) {
-        // if ($tmp != NULL) {
-        //   $name = uniqid() . '-' . $tmp->baseName . '.' . $tmp->extension;
-        //   $tmp->saveAs(Yii::getAlias('@webroot') . '/uploadFiles/' . $name);
-        //   $path = Yii::getAlias('@webroot') . '/uploadFiles/' . $name;
-        //   $type = pathinfo($path, PATHINFO_EXTENSION);
-        //   $data = file_get_contents($path);
-        //   $base64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
-        //   $model->lap_op_label_implant = $base64;
-        // }
         if ($model->lap_op_final) {
           return MakeResponse::create(true, '', ['konfirm_final' => true]);
         }
         $save = $this->save($title, $modelLog, $model, []);
         if ($save->status) {
-          return MakeResponse::create(true, $save->msg, ['konfirm_final' => false, 'id' => HelperGeneral::hashData($save->data['lap_op_to_id']), 'subid' => $save->data['lap_op_id']]);
+          return MakeResponse::create(true, $save->msg, ['konfirm_final' => false, 'id' => $save->data['lap_op_to_id'], 'subid' => $save->data['lap_op_id']]);
         } else {
           return MakeResponse::create(false, $save->msg);
         }
@@ -233,22 +210,13 @@ class LaporanOperasiPasienController extends Controller
     if ($model->load(Yii::$app->request->post())) {
       $model->lap_op_laporan = str_replace(["<<", ">>"], ["<", ">"], $model->lap_op_laporan);
       $model->lap_op_instruksi_prwt_pasca_operasi = str_replace(["<<", ">>"], ["<", ">"], $model->lap_op_instruksi_prwt_pasca_operasi);
-      // $tmp = UploadedFile::getInstance($model, 'label_implan');
+
       $model->setFinal();
 
       if ($model->validate()) {
-        // if ($tmp != NULL) {
-        //   $name = uniqid() . '-' . $tmp->baseName . '.' . $tmp->extension;
-        //   $tmp->saveAs(Yii::getAlias('@webroot') . '/uploadFiles/' . $name);
-        //   $path = Yii::getAlias('@webroot') . '/uploadFiles/' . $name;
-        //   $type = pathinfo($path, PATHINFO_EXTENSION);
-        //   $data = file_get_contents($path);
-        //   $base64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
-        //   $model->lap_op_label_implant = $base64;
-        // }
         $save = $this->save($title, $modelLog, $model, [], true, false, false);
         if ($save->status) {
-          return MakeResponse::create(true, $save->msg, ['id' => HelperGeneral::hashData($save->data['lap_op_to_id']), 'subid' => $save->data['lap_op_id']]);
+          return MakeResponse::create(true, $save->msg, ['id' => $save->data['lap_op_to_id'], 'subid' => $save->data['lap_op_id']]);
         } else {
           return MakeResponse::create(false, $save->msg);
         }
@@ -260,12 +228,7 @@ class LaporanOperasiPasienController extends Controller
   public function actionSaveUpdate($subid)
   {
     $title = 'Updated ' . LaporanOperasi::ass_n;
-    //cek simpan draf/final/batalkan
-    //init model order penunjang
     $model = $this->findModel($subid);
-    // if($model->lap_op_perawat_id!=Akun::user()->id){
-    //     return MakeResponse::create(false, 'Data Tidak Dapat Kelola');
-    // }
     //init model log 
     $modelLog = new Log();
     $modelLog->mlog_type = Log::TYPE_UPDATE;
@@ -280,19 +243,8 @@ class LaporanOperasiPasienController extends Controller
     if ($model->load(Yii::$app->request->post())) {
       $model->lap_op_laporan = str_replace(["<<", ">>"], ["<", ">"], $model->lap_op_laporan);
       $model->lap_op_instruksi_prwt_pasca_operasi = str_replace(["<<", ">>"], ["<", ">"], $model->lap_op_instruksi_prwt_pasca_operasi);
-      // $tmp = UploadedFile::getInstance($model, 'label_implan');
 
-      // $model->lap_op_final = 0;
       if ($model->validate()) {
-        // if ($tmp != NULL) {
-        //   $name = uniqid() . '-' . $tmp->baseName . '.' . $tmp->extension;
-        //   $tmp->saveAs(Yii::getAlias('@webroot') . '/uploadFiles/' . $name);
-        //   $path = Yii::getAlias('@webroot') . '/uploadFiles/' . $name;
-        //   $type = pathinfo($path, PATHINFO_EXTENSION);
-        //   $data = file_get_contents($path);
-        //   $base64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
-        //   $model->lap_op_label_implant = $base64;
-        // }
         if ($model->lap_op_final && !$model->lap_op_batal) {
           return MakeResponse::create(true, '', ['konfirm_final' => true, 'konfirm_batal' => false]);
         } else if ($model->lap_op_final && $model->lap_op_batal) {
@@ -332,19 +284,10 @@ class LaporanOperasiPasienController extends Controller
     if ($model->load(Yii::$app->request->post())) {
       $model->lap_op_laporan = str_replace(["<<", ">>"], ["<", ">"], $model->lap_op_laporan);
       $model->lap_op_instruksi_prwt_pasca_operasi = str_replace(["<<", ">>"], ["<", ">"], $model->lap_op_instruksi_prwt_pasca_operasi);
-      // $tmp = UploadedFile::getInstance($model, 'label_implan');
+
       $model->setFinal();
 
       if ($model->validate()) {
-        // if ($tmp != NULL) {
-        //   $name = uniqid() . '-' . $tmp->baseName . '.' . $tmp->extension;
-        //   $tmp->saveAs(Yii::getAlias('@webroot') . '/uploadFiles/' . $name);
-        //   $path = Yii::getAlias('@webroot') . '/uploadFiles/' . $name;
-        //   $type = pathinfo($path, PATHINFO_EXTENSION);
-        //   $data = file_get_contents($path);
-        //   $base64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
-        //   $model->lap_op_label_implant = $base64;
-        // }
         $save = $this->save($title, $modelLog, $model, [], true, false, false);
         if ($save->status) {
           return MakeResponse::create(true, $save->msg);
@@ -411,7 +354,7 @@ class LaporanOperasiPasienController extends Controller
     if ($model->validate()) {
       $save = $this->save($title, $modelLog, $model, [], false, false, true);
       if ($save->status) {
-        return MakeResponse::create(true, $save->msg, ['id' => HelperGeneral::hashData($save->data['lap_op_to_id'])]);
+        return MakeResponse::create(true, $save->msg, ['id' => $save->data['lap_op_to_id']]);
       } else {
         return MakeResponse::create(false, $save->msg);
       }
@@ -507,13 +450,6 @@ class LaporanOperasiPasienController extends Controller
     return LaporanOperasi::find()->where(['lap_op_id' => $subid])->andWhere('lap_op_deleted_at is null')->orderBy(['lap_op_created_at' => SORT_DESC])->one();
   }
 
-  /**
-   * Finds the LaporanOperasi model based on its primary key value.
-   * If the model is not found, a 404 HTTP exception will be thrown.
-   * @param integer $id
-   * @return LaporanOperasi the loaded model
-   * @throws NotFoundHttpException if the model cannot be found
-   */
   protected function findModel($id)
   {
     if (($model = LaporanOperasi::findOne($id)) !== null) {

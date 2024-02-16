@@ -4,7 +4,7 @@
 
 $this->title = 'Operasi Bedah Sentral';
 ?>
-<div class="site-index">
+<div class="site-index" style="text-align: center;">
   <!-- <section class="content-header">
     <div class="container">
       <div class="row mb-2">
@@ -16,12 +16,15 @@ $this->title = 'Operasi Bedah Sentral';
       </div>
     </div>
   </section> -->
-  <div class="jumbotron text-center bg-transparent">
-    <h1 style="background:white;border-radius:5px; color:#28a745!important;">EMR <b>BEDAH SENTRAL - RSUD Arifin Achmad</b></em></h1>
-    <!-- <marquee direction="down" width="100%" height="300" behavior="alternate">
+  <img style="margin-bottom:20px" src="<?= Yii::$app->homeUrl . "images/logo.png" ?>" height="300px" class="user-image img-circle elevation-2" alt="User Image">
+  <!-- <div class="jumbotron text-center bg-transparent"> -->
+  <!-- <img style="position: center" src="/images/rsudaa.png" height="300px" alt=""> -->
+  <h1 style="background:white;border-radius:5px;"><b>Selamat Datang!</b></em></h1>
+  <h1 style="background:white;border-radius:5px; color:#28a745!important;"><?= Yii::$app->params['app']['namaAwal'] ?>-<b><?= Yii::$app->params['app']['namaAkhir'] ?> - RSUD Arifin Achmad</b></em></h1>
+  <!-- <marquee direction="down" width="100%" height="300" behavior="alternate">
       <marquee behavior="alternate">
         <span style="padding: 0;font-size:5em"><b><?= Yii::$app->params['app']['fullName'] ?></b></span>
       </marquee>
     </marquee> -->
-  </div>
+  <!-- </div> -->
 </div>

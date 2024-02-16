@@ -86,12 +86,12 @@ class HelperSpesial
 
   public static function getListPerawatBidan($original = true, $list = false)
   {
-    $result = TbPegawai::find()->select([TbPegawai::tableName() . '.id_nip_nrp', 'pegawai_id', new \yii\db\Expression("CONCAT(" . TbPegawai::tableName() . ".id_nip_nrp,' | ',gelar_sarjana_depan, ' ',nama_lengkap,' ',gelar_sarjana_belakang) as nama")])->innerjoinWith([
+    $result = TbPegawai::find()->select(['pegawai.tb_pegawai.id_nip_nrp', 'pegawai_id', new \yii\db\Expression("CONCAT(" . TbPegawai::tableName() . ".id_nip_nrp,' | ',gelar_sarjana_depan, ' ',nama_lengkap,' ',gelar_sarjana_belakang) as nama")])->innerjoinWith([
       'riwayatPenempatan' => function ($q) {
-        $q->where(['or', [TbRiwayatPenempatan::tableName() . '.sdm_rumpun' => self::SDM_RUMPUN_PERAWAT], [TbRiwayatPenempatan::tableName() . '.sdm_rumpun' => self::SDM_RUMPUN_BIDAN], [TbRiwayatPenempatan::tableName() . '.sdm_rumpun' => self::SDM_RUMPUN_KETEKNISIAN_MEDIS]])->orderBy([TbRiwayatPenempatan::tableName() . '.tanggal' => SORT_DESC])->limit(1);
+        $q->where(['or', ['pegawai.tb_riwayat_penempatan.sdm_rumpun' => self::SDM_RUMPUN_PERAWAT], ['pegawai.tb_riwayat_penempatan.sdm_rumpun' => self::SDM_RUMPUN_BIDAN], ['pegawai.tb_riwayat_penempatan.sdm_rumpun' => self::SDM_RUMPUN_KETEKNISIAN_MEDIS]])->orderBy(['pegawai.tb_riwayat_penempatan.tanggal' => SORT_DESC])->limit(1);
       }
     ])
-      ->where([TbPegawai::tableName() . '.status_aktif_pegawai' => 1])->asArray()->all();
+      ->where(['pegawai.tb_pegawai.status_aktif_pegawai' => 1])->asArray()->all();
     if ($original) {
       return $result;
     } else {
@@ -167,9 +167,9 @@ class HelperSpesial
       $query->where(['status_aktif_pegawai' => 1]);
     }
 
-    // $query->andWhere(['or', [TbRiwayatPenempatan::tableName() . '.unit_kerja' => 137], [TbRiwayatPenempatan::tableName() . '.unit_kerja' => 141], [DmUnitPenempatan::tableName() . '.is_ok' => 1]]);
+    // $query->andWhere(['or', ['pegawai.tb_riwayat_penempatan.unit_kerja' => 137], ['pegawai.tb_riwayat_penempatan.unit_kerja' => 141], [DmUnitPenempatan::tableName() . '.is_ok' => 1]]);
 
-    $query->andWhere(['or', [TbRiwayatPenempatan::tableName() . '.sdm_rumpun' => 1], [TbRiwayatPenempatan::tableName() . '.sdm_rumpun' => 3], [TbRiwayatPenempatan::tableName() . '.sdm_rumpun' => 10], [TbRiwayatPenempatan::tableName() . '.sdm_rumpun' => 4], [TbPegawai::tableName() . '.id_nip_nrp' => Yii::$app->params['other']['username_root_bedah_sentral']]]);
+    $query->andWhere(['or', ['pegawai.tb_riwayat_penempatan.sdm_rumpun' => 1], ['pegawai.tb_riwayat_penempatan.sdm_rumpun' => 3], ['pegawai.tb_riwayat_penempatan.sdm_rumpun' => 10], ['pegawai.tb_riwayat_penempatan.sdm_rumpun' => 4], ['pegawai.tb_pegawai.id_nip_nrp' => Yii::$app->params['other']['username_root_bedah_sentral']]]);
 
     $result = $query->asArray()->all();
 
@@ -199,7 +199,37 @@ class HelperSpesial
       $query->where(['status_aktif_pegawai' => 1]);
     }
 
-    $query->andWhere(['or', [TbRiwayatPenempatan::tableName() . '.sdm_rumpun' => 1], [TbPegawai::tableName() . '.id_nip_nrp' => Yii::$app->params['other']['username_root_bedah_sentral']]]);
+    $query->andWhere(['or', ['pegawai.tb_riwayat_penempatan.sdm_rumpun' => 1], ['pegawai.tb_pegawai.id_nip_nrp' => Yii::$app->params['other']['username_root_bedah_sentral']]]);
+
+    $result = $query->asArray()->all();
+
+    $list_result = array();
+    foreach ($result as $v) {
+      array_push($list_result, ['id' => $v['pegawai_id'], 'nama' => self::getNamaPegawaiArray($v)]);
+    }
+
+    if ($original) {
+      return $list_result;
+    } else {
+      if ($list) {
+        return ArrayHelper::map($list_result, 'id', 'nama');
+      } else {
+        return ArrayHelper::getColumn($list_result, 'id');
+      }
+    }
+  }
+  public static function getListSelainDokter($aktif = 0, $original = true, $list = false)
+  {
+    $result = array();
+    $query = TbPegawai::find();
+    $query->joinWith([
+      'riwayatPenempatan.unitKerja'
+    ])->orderBy(['id_nip_nrp' => SORT_DESC]);
+    if ($aktif > 0) {
+      $query->where(['status_aktif_pegawai' => 1]);
+    }
+
+    $query->andWhere(['or', ['pegawai.tb_riwayat_penempatan.sdm_rumpun' => 3], ['pegawai.tb_riwayat_penempatan.sdm_rumpun' => 10], ['pegawai.tb_riwayat_penempatan.sdm_rumpun' => 4], ['pegawai.tb_pegawai.id_nip_nrp' => Yii::$app->params['other']['username_root_bedah_sentral']]]);
 
     $result = $query->asArray()->all();
 
@@ -224,12 +254,12 @@ class HelperSpesial
     $query = PegawaiUser::find();
     $query->joinWith([
       'pegawai.riwayatPenempatan.unitKerja'
-    ])->orderBy([TbPegawai::tableName() . '.id_nip_nrp' => SORT_DESC]);
+    ])->orderBy(['pegawai.tb_pegawai.id_nip_nrp' => SORT_DESC]);
     if ($aktif > 0) {
-      $query->where([TbPegawai::tableName() . '.status_aktif_pegawai' => 1]);
+      $query->where(['pegawai.tb_pegawai.status_aktif_pegawai' => 1]);
     }
 
-    // $query->andWhere(['or', [TbRiwayatPenempatan::tableName() . '.sdm_rumpun' => 1], [TbRiwayatPenempatan::tableName() . '.sdm_rumpun' => 3], [TbRiwayatPenempatan::tableName() . '.sdm_rumpun' => 10]]);
+    // $query->andWhere(['or', ['pegawai.tb_riwayat_penempatan.sdm_rumpun' => 1], ['pegawai.tb_riwayat_penempatan.sdm_rumpun' => 3], ['pegawai.tb_riwayat_penempatan.sdm_rumpun' => 10]]);
     $result = $query->asArray()->all();
 
     $list_result = array();
@@ -255,20 +285,20 @@ class HelperSpesial
   public static function getListDokter($original = true, $list = false)
   {
     //bisa by tb_riwayat_penempatan where sdm_rumpun=1
-    $result = TbPegawai::find()->select([TbPegawai::tableName() . '.id_nip_nrp', 'pegawai_id', new \yii\db\Expression("CONCAT(" . TbPegawai::tableName() . ".id_nip_nrp,' | ',gelar_sarjana_depan, ' ',nama_lengkap,' ',gelar_sarjana_belakang) as nama")])->innerjoinWith([
+    $result = TbPegawai::find()->select(['pegawai.tb_pegawai.id_nip_nrp', 'pegawai_id', new \yii\db\Expression("CONCAT(" . TbPegawai::tableName() . ".id_nip_nrp,' | ',gelar_sarjana_depan, ' ',nama_lengkap,' ',gelar_sarjana_belakang) as nama")])->innerjoinWith([
       'riwayatPenempatan' => function ($q) {
-        $q->where(['or', [TbRiwayatPenempatan::tableName() . '.id_nip_nrp' => Yii::$app->params['other']['username_root_bedah_sentral']], [TbRiwayatPenempatan::tableName() . '.sdm_rumpun' => 1]])->orderBy([TbRiwayatPenempatan::tableName() . '.tanggal' => SORT_DESC])->active()->limit(1);
+        $q->where(['or', ['pegawai.tb_riwayat_penempatan.id_nip_nrp' => Yii::$app->params['other']['username_root_bedah_sentral']], ['pegawai.tb_riwayat_penempatan.sdm_rumpun' => 1]])->orderBy(['pegawai.tb_riwayat_penempatan.tanggal' => SORT_DESC])->active()->limit(1);
       }
-    ])->where([TbPegawai::tableName() . '.status_aktif_pegawai' => 1])->asArray()->all();
+    ])->where(['pegawai.tb_pegawai.status_aktif_pegawai' => 1])->asArray()->all();
     // echo "<pre>";
     // print_r($result);
     // die;
     if (!$result) {
-      $result = TbPegawai::find()->select([TbPegawai::tableName() . '.id_nip_nrp', 'pegawai_id', new \yii\db\Expression("CONCAT(" . TbPegawai::tableName() . ".id_nip_nrp,' | ',gelar_sarjana_depan, ' ',nama_lengkap,' ',gelar_sarjana_belakang) as nama")])->innerjoinWith([
+      $result = TbPegawai::find()->select(['pegawai.tb_pegawai.id_nip_nrp', 'pegawai_id', new \yii\db\Expression("CONCAT(" . TbPegawai::tableName() . ".id_nip_nrp,' | ',gelar_sarjana_depan, ' ',nama_lengkap,' ',gelar_sarjana_belakang) as nama")])->innerjoinWith([
         'pltPlh' => function ($q) {
           $q->where([TbUnitPltPlh::tableName() . '.sdm_rumpun' => 1])->orderBy([TbUnitPltPlh::tableName() . '.tanggal_surat' => SORT_DESC])->active()->limit(1);
         }
-      ])->where([TbPegawai::tableName() . '.status_aktif_pegawai' => 1])->asArray()->all();
+      ])->where(['pegawai.tb_pegawai.status_aktif_pegawai' => 1])->asArray()->all();
     }
     if ($original) {
       return $result;
@@ -287,7 +317,7 @@ class HelperSpesial
     if ($layanan['jenis_layanan'] === Layanan::RI) {
       //RI
       $query = PjpRi::find()
-        ->select([PjpRi::tableName() . '.id', PjpRi::tableName() . '.pegawai_id', TbPegawai::tableName() . '.id_nip_nrp', TbPegawai::tableName() . '.pegawai_id', new \yii\db\Expression("CONCAT(gelar_sarjana_depan, ' ',nama_lengkap,' ',gelar_sarjana_belakang) as nama")])
+        ->select([PjpRi::tableName() . '.id', PjpRi::tableName() . '.pegawai_id', 'pegawai.tb_pegawai.id_nip_nrp', 'pegawai.tb_pegawai.pegawai_id', new \yii\db\Expression("CONCAT(gelar_sarjana_depan, ' ',nama_lengkap,' ',gelar_sarjana_belakang) as nama")])
         ->joinWith([
           'pegawai'
         ]);
@@ -296,7 +326,7 @@ class HelperSpesial
     } else {
       //RJ/IGD/PENUNJANG
       $query = Pjp::find()
-        ->select([Pjp::tableName() . '.id', Pjp::tableName() . '.pegawai_id', TbPegawai::tableName() . '.id_nip_nrp', TbPegawai::tableName() . '.pegawai_id', new \yii\db\Expression("CONCAT(gelar_sarjana_depan, ' ',nama_lengkap,' ',gelar_sarjana_belakang) as nama")])
+        ->select([Pjp::tableName() . '.id', Pjp::tableName() . '.pegawai_id', 'pegawai.tb_pegawai.id_nip_nrp', 'pegawai.tb_pegawai.pegawai_id', new \yii\db\Expression("CONCAT(gelar_sarjana_depan, ' ',nama_lengkap,' ',gelar_sarjana_belakang) as nama")])
         ->joinWith([
           'pegawai'
         ]);
@@ -320,7 +350,7 @@ class HelperSpesial
     if ($layanan['jenis_layanan'] === Layanan::RI) {
       //RI
       $query = PjpRi::find()
-        ->select([PjpRi::tableName() . '.id', PjpRi::tableName() . '.pegawai_id', TbPegawai::tableName() . '.id_nip_nrp', TbPegawai::tableName() . '.pegawai_id', new \yii\db\Expression("CONCAT(gelar_sarjana_depan, ' ',nama_lengkap,' ',gelar_sarjana_belakang) as nama")])
+        ->select([PjpRi::tableName() . '.id', PjpRi::tableName() . '.pegawai_id', 'pegawai.tb_pegawai.id_nip_nrp', 'pegawai.tb_pegawai.pegawai_id', new \yii\db\Expression("CONCAT(gelar_sarjana_depan, ' ',nama_lengkap,' ',gelar_sarjana_belakang) as nama")])
         ->joinWith([
           'pegawai'
         ]);
@@ -329,7 +359,7 @@ class HelperSpesial
     } else {
       //RJ/IGD/PENUNJANG
       $query = Pjp::find()
-        ->select([Pjp::tableName() . '.id', Pjp::tableName() . '.pegawai_id', TbPegawai::tableName() . '.id_nip_nrp', TbPegawai::tableName() . '.pegawai_id', new \yii\db\Expression("CONCAT(gelar_sarjana_depan, ' ',nama_lengkap,' ',gelar_sarjana_belakang) as nama")])
+        ->select([Pjp::tableName() . '.id', Pjp::tableName() . '.pegawai_id', 'pegawai.tb_pegawai.id_nip_nrp', 'pegawai.tb_pegawai.pegawai_id', new \yii\db\Expression("CONCAT(gelar_sarjana_depan, ' ',nama_lengkap,' ',gelar_sarjana_belakang) as nama")])
         ->joinWith([
           'pegawai'
         ]);
@@ -487,6 +517,7 @@ class HelperSpesial
     }
     $layanan = Layanan::find()->joinWith([
       'unit',
+      'unitAsal',
       'registrasi.pasien',
       'registrasi.debiturDetail',
       'registrasi.pjpRi.pegawai',

@@ -6,8 +6,7 @@ $(document).ready(function () {
       fbtn.setLoading(btn, "proses...");
       var post_data = $(this).serialize();
       var url_insert_draf = baseUrl + "/askan-pra-anestesi/save-insert";
-      var url_insert_final =
-        baseUrl + "/askan-pra-anestesi/save-insert-final";
+      var url_insert_final = baseUrl + "/askan-pra-anestesi/save-insert-final";
       $.ajax({
         url: url_insert_draf,
         type: "post",

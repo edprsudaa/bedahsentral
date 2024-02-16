@@ -22,7 +22,7 @@ $this->registerJs($this->render('script.js'));
   <div class="sidebar">
     <div class="user-panel mt-3 pb-3 mb-3 d-flex">
       <div class="image">
-        <img src="<?= Url::base() . "/images/avatar.jpg" ?>" class="img-circle elevation-2" alt="User Image">
+        <img src="<?= Akun::user()->photo ?>" class="img-circle elevation-2" alt="User Image">
       </div>
       <div class="info">
         <a href="#" class="d-block"><?= Akun::user()->name ?></a>
@@ -34,7 +34,7 @@ $this->registerJs($this->render('script.js'));
 
       $userid = Akun::user()->id;
       $id_pegawai = Akun::user()->id_pegawai;
-      $id_layanan = HelperGeneral::convertLayananId(Yii::$app->request->get('id'));
+      $id_layanan = Yii::$app->request->get('id');
 
       $tim = TimOperasi::find()
         ->where(['to_ok_pl_id' => $id_layanan, 'to_deleted_at' => null])
@@ -47,7 +47,7 @@ $this->registerJs($this->render('script.js'));
 
       if ($cek || ($tim->to_created_by == $userid) || (Akun::user()->username == Yii::$app->params['other']['username_root_bedah_sentral'])) {
         $menuItems = [
-          ['label' => 'Riwayat Pasien', 'iconStyle' => 'fas', 'icon' => 'fas fa-wheelchair', 'url' => ['/site-pasien/index', 'id' => Yii::$app->request->get('id')]],
+          ['label' => 'Histori Pasien', 'iconStyle' => 'fas', 'icon' => 'fas fa-wheelchair', 'url' => ['/site-pasien/index', 'id' => Yii::$app->request->get('id')]],
 
           [
             'label' => 'Cari Pasien Lain',
@@ -64,6 +64,8 @@ $this->registerJs($this->render('script.js'));
           ],
 
           ['label' => 'Tim Operasi', 'iconStyle' => 'fas', 'icon' => 'fas fa-users', 'url' => ['/tim-operasi/index', 'id' => Yii::$app->request->get('id')]],
+
+          ['label' => 'Pembatalan Operasi', 'iconStyle' => 'fas', 'icon' => 'fas fa-ban', 'url' => ['/pembatalan-operasi/index', 'id' => Yii::$app->request->get('id')]],
 
           ['label' => 'TINDAKAN', 'header' => true, 'url' => ['/pasien-jasa-tindakan/']],
 
@@ -150,6 +152,8 @@ $this->registerJs($this->render('script.js'));
           ],
 
           ['label' => 'Tim Operasi', 'icon' => 'fas fa-users', 'url' => ['/tim-operasi/index', 'id' => Yii::$app->request->get('id')]],
+
+          ['label' => 'Pembatalan Operasi', 'iconStyle' => 'fas', 'icon' => 'fas fa-ban', 'url' => ['/pembatalan-operasi/index', 'id' => Yii::$app->request->get('id')]],
         ];
       }
       $menuItems = Helper::filter($menuItems); ///matikan rbac

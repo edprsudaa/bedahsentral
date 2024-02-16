@@ -53,26 +53,30 @@ class LayananOperasiSearch extends Layanan
     $id_pegawai = Akun::user()->id_pegawai;
     // echo "<pre>";
     // print_r($user_akses_unit_id);die;
-    $query = Layanan::find();
+    $query = Layanan::find()->alias('l');
     $query->joinWith([
-      'registrasi.pasien',
-      'timOperasi.timOperasiDetail',
-      'timOperasi.laporanOperasi',
-      'unit',
-      'unitAsal'
-    ])->where(['layanan.jenis_layanan' => parent::OK])
-      ->andWhere('tim_operasi.to_deleted_at is null')
-      ->groupBy(['tim_operasi.to_id', 'layanan.id'])
-      ->orderBy(['tim_operasi.to_id' => SORT_DESC]);
+      'registrasi r',
+      'registrasi.pasien p',
+      'timOperasi top',
+      'timOperasi.timOperasiDetail tod',
+      'timOperasi.laporanOperasi lo',
+      'timOperasi.createdby c',
+      'unit u',
+      'unitAsal ua'
+    ], false)->where(['l.jenis_layanan' => parent::OK])
+      ->andWhere('top.to_deleted_at is null')
+      ->andWhere('l.deleted_at is null')
+      ->groupBy(['top.to_id', 'l.id'])
+      ->orderBy(['top.to_id' => SORT_DESC]);
 
     //Pasien Pulang
     if ($pulang == 1) {
       $query->andWhere([
-        'laporan_operasi.lap_op_final' => 1
+        'lo.lap_op_final' => 1
       ]);
-      $query->andWhere(['laporan_operasi.lap_op_batal' => 0]);
+      $query->andWhere(['lo.lap_op_batal' => 0]);
     } elseif (($pulang == 288) || ($pulang == 139) || ($pulang == 138)) {
-      $query->andWhere(['tim_operasi.to_ok_unt_id' => $pulang]);
+      $query->andWhere(['top.to_ok_unt_id' => $pulang]);
       // $query->andWhere([
       //   'or', ['laporan_operasi.lap_op_final' => 0],
       //   'laporan_operasi.lap_op_final is null',
@@ -86,7 +90,7 @@ class LayananOperasiSearch extends Layanan
 
     if (($role['akses_level'] == 'DOKTER')) {
       $query->andWhere([
-        'tim_operasi_detail.tod_pgw_id' => $id_pegawai
+        'tod.tod_pgw_id' => $id_pegawai
       ]);
     }
 
@@ -96,10 +100,10 @@ class LayananOperasiSearch extends Layanan
         'pageSize' => 10
       ]
     ]);
-    $dataProvider->sort->attributes['tgl_masuk'] = [
-      'asc' => ['layanan.tgl_masuk' => SORT_ASC],
-      'desc' => ['layanan.tgl_masuk' => SORT_DESC],
-    ];
+    // $dataProvider->sort->attributes['tgl_masuk'] = [
+    //   'asc' => ['layanan.tgl_masuk' => SORT_ASC],
+    //   'desc' => ['layanan.tgl_masuk' => SORT_DESC],
+    // ];
 
     $this->load($params);
 
@@ -115,23 +119,25 @@ class LayananOperasiSearch extends Layanan
     $query->andFilterWhere([
       'or',
       // ['ilike', Pasien::tableName() . '.kode', $this->pasien],
-      ['ilike', 'pasien.nama', $this->pasien],
+      ['ilike', 'p.nama', $this->pasien],
       // ['ilike', parent::tableName() . '.registrasi_kode', $this->pasien],
     ]);
+
     if ($this->status) {
       $this->dibuat = Akun::user()->id;
     }
+
     $query->andFilterWhere([
       'or',
-      ['=', 'tim_operasi.to_created_by', $this->dibuat],
-      ['=', 'tim_operasi_detail.tod_pgw_id', $this->status],
+      ['=', 'top.to_created_by', $this->dibuat],
+      ['=', 'tod.tod_pgw_id', $this->status],
     ]);
 
-    $query->andFilterWhere(['ilike', 'tim_operasi.to_tindakan_operasi', $this->tindakan_operasi])
-      ->andFilterWhere(['ilike', 'pasien.kode', $this->norm,])
-      ->andFilterWhere(['=', 'tim_operasi.to_ok_unt_id', $this->unit_tujuan])
-      ->andFilterWhere(['=', 'layanan.unit_asal_kode', $this->unit_awal,])
-      ->andFilterWhere(['=', new \yii\db\Expression("to_char(tim_operasi.to_tanggal_operasi, 'dd-mm-yyyy')"), $this->tgl_operasi]);
+    $query->andFilterWhere(['ilike', 'top.to_tindakan_operasi', $this->tindakan_operasi])
+      ->andFilterWhere(['ilike', 'p.kode', $this->norm,])
+      ->andFilterWhere(['=', 'top.to_ok_unt_id', $this->unit_tujuan])
+      ->andFilterWhere(['=', 'l.unit_asal_kode', $this->unit_awal,])
+      ->andFilterWhere(['=', new \yii\db\Expression("to_char(top.to_tanggal_operasi, 'dd-mm-yyyy')"), $this->tgl_operasi]);
     return $dataProvider;
   }
 
@@ -141,30 +147,33 @@ class LayananOperasiSearch extends Layanan
     $role = HelperSpesial::getUserLogin();
     $id_pegawai = Akun::user()->id_pegawai;
 
-    $query = TimOperasi::find();
+    $query = TimOperasi::find()->alias('top');
     // $query->innerJoinWith([
     //   'layanan.registrasi.pasien',
     //   'timOperasiDetail',
     //   'layanan.unit'
     // ]);
     $query->joinWith([
-      'laporanOperasi',
-      'layanan.registrasi.pasien',
-      'timOperasiDetail',
-      'layanan.unit'
-    ])->where([
+      'laporanOperasi lo',
+      'layanan l',
+      'layanan.registrasi r',
+      'layanan.registrasi.pasien p',
+      'layanan.unit u',
+      'timOperasiDetail tod',
+      'createdby c',
+    ], false)->where([
       'and',
-      ['!=', 'tim_operasi.to_ok_unt_id', self::KAMAR_OK_GROUND],
-      ['!=', 'tim_operasi.to_ok_unt_id', self::KAMAR_OK_IRD],
-      ['!=', 'tim_operasi.to_ok_unt_id', self::KAMAR_OK_IBS],
+      ['!=', 'top.to_ok_unt_id', self::KAMAR_OK_GROUND],
+      ['!=', 'top.to_ok_unt_id', self::KAMAR_OK_IRD],
+      ['!=', 'top.to_ok_unt_id', self::KAMAR_OK_IBS],
     ])
-      ->andWhere('tim_operasi.to_deleted_at is null')
-      ->groupBy(['tim_operasi.to_id', 'layanan.id'])
-      ->orderBy(['tim_operasi.to_id' => SORT_DESC]);
+      ->andWhere('top.to_deleted_at is null')
+      ->groupBy(['top.to_id', 'l.id'])
+      ->orderBy(['top.to_id' => SORT_DESC]);
 
     if (($role['akses_level'] == 'DOKTER')) {
       $query->andWhere([
-        'tim_operasi_detail.tod_pgw_id' => $id_pegawai
+        'tod.tod_pgw_id' => $id_pegawai
       ]);
     }
 
@@ -174,10 +183,10 @@ class LayananOperasiSearch extends Layanan
         'pageSize' => 10
       ]
     ]);
-    $dataProvider->sort->attributes['tgl_masuk'] = [
-      'asc' => ['layanan.tgl_masuk' => SORT_ASC],
-      'desc' => ['layanan.tgl_masuk' => SORT_DESC],
-    ];
+    // $dataProvider->sort->attributes['tgl_masuk'] = [
+    //   'asc' => ['layanan.tgl_masuk' => SORT_ASC],
+    //   'desc' => ['layanan.tgl_masuk' => SORT_DESC],
+    // ];
 
     $this->load($params);
 
@@ -193,7 +202,7 @@ class LayananOperasiSearch extends Layanan
     $query->andFilterWhere([
       'or',
       // ['ilike', Pasien::tableName() . '.kode', $this->pasien],
-      ['ilike', 'pasien.nama', $this->pasien],
+      ['ilike', 'p.nama', $this->pasien],
       // ['ilike', parent::tableName() . '.registrasi_kode', $this->pasien],
     ]);
     if ($this->status) {
@@ -201,15 +210,15 @@ class LayananOperasiSearch extends Layanan
     }
     $query->andFilterWhere([
       'or',
-      ['=', 'tim_operasi.to_created_by', $this->dibuat],
-      ['=', 'tim_operasi_detail.tod_pgw_id', $this->status],
+      ['=', 'top.to_created_by', $this->dibuat],
+      ['=', 'tod.tod_pgw_id', $this->status],
     ]);
 
-    $query->andFilterWhere(['ilike', 'tim_operasi.to_tindakan_operasi', $this->tindakan_operasi])
-      ->andFilterWhere(['ilike', 'pasien.kode', $this->norm,])
-      ->andFilterWhere(['=', 'tim_operasi.to_ok_unt_id', $this->unit_tujuan])
-      ->andFilterWhere(['=', 'layanan.unit_kode', $this->unit_awal,])
-      ->andFilterWhere(['=', new \yii\db\Expression("to_char(tim_operasi.to_tanggal_operasi, 'dd-mm-yyyy')"), $this->tgl_operasi]);
+    $query->andFilterWhere(['ilike', 'top.to_tindakan_operasi', $this->tindakan_operasi])
+      ->andFilterWhere(['ilike', 'p.kode', $this->norm,])
+      ->andFilterWhere(['=', 'top.to_ok_unt_id', $this->unit_tujuan])
+      ->andFilterWhere(['=', 'l.unit_kode', $this->unit_awal,])
+      ->andFilterWhere(['=', new \yii\db\Expression("to_char(top.to_tanggal_operasi, 'dd-mm-yyyy')"), $this->tgl_operasi]);
     return $dataProvider;
   }
 }

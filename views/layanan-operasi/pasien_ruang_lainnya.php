@@ -100,11 +100,7 @@ $this->registerJs($this->render('script.js'));
             'headerOptions' => ['style' => 'text-align: center;width:115px'],
             'contentOptions' => ['style' => 'text-align: center;width:115px'],
             'value' => function ($model) {
-              // $tim = TimOperasi::find()->where(['to_ok_pl_id' => $model->id])->all();
-              // foreach ($tim as $key => $value) {
-              return $model->to_tanggal_operasi ? Yii::$app->formatter->asDate($model->to_tanggal_operasi) : "KOSONG";
-              // }
-              // return Yii::$app->formatter->asDate($model->pl_tgl_masuk) . '<br>' . Yii::$app->formatter->asTime($model->pl_tgl_masuk);
+              return $model->to_tanggal_operasi ? Yii::$app->formatter->asDate($model->to_tanggal_operasi) : "Belum Diisi !!";
             },
             // 'filter' => true,
             'filter' => DatePicker::widget([
@@ -127,7 +123,7 @@ $this->registerJs($this->render('script.js'));
             'contentOptions' => ['style' => 'text-align: center;'],
             'format' => 'html',
             'value' => function ($model) {
-              return $model->layanan->unit ? str_replace(["RUANG", "POLI"], [""], $model->layanan->unit->nama) : "KOSONG";
+              return $model->layanan->unit ? str_replace(["RUANG", "POLI"], [""], $model->layanan->unit->nama) : "Unit Kosong !!";
             },
             // 'filter' => false
             'filter' => Select2::widget([
@@ -150,10 +146,7 @@ $this->registerJs($this->render('script.js'));
             'headerOptions' => ['style' => 'text-align: center;'],
             'contentOptions' => ['style' => 'text-align: center;'],
             'value' => function ($model) {
-              // $tim = TimOperasi::find()->where(['to_ok_pl_id' => $model->id])->all();
-              // foreach ($tim as $key => $value) {
-              return $model->to_tindakan_operasi ? $model->to_tindakan_operasi : "KOSONG";
-              // }
+              return $model->to_tindakan_operasi ? $model->to_tindakan_operasi : "Belum Diisi !!";
             },
             'filterInputOptions' => [
               'class' => 'form-control',
@@ -168,11 +161,7 @@ $this->registerJs($this->render('script.js'));
             'headerOptions' => ['style' => 'text-align: center;'],
             'contentOptions' => ['style' => 'text-align: center;'],
             'value' => function ($model) {
-              // $tim = TimOperasi::find()->where(['to_ok_pl_id' => $model->id])->all();
-              // foreach ($tim as $key => $value) {
-              // return HelperSpesial::getNamaPegawai($value->createdby->pegawai);
               return $model->createdby ? $model->createdby->username : "KOSONG";
-              // }
             },
             // 'filterInputOptions' => [
             //   'class' => 'form-control',

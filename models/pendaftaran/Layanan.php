@@ -204,7 +204,8 @@ class Layanan extends \yii\db\ActiveRecord
       ['layanan.jenis_layanan' => 2],
       ['layanan.jenis_layanan' => 3]
     ])
-      ->andWhere(['is', 'registrasi.tgl_keluar', new \yii\db\Expression('null')])
+      ->andWhere('registrasi.tgl_keluar is null')
+      ->andWhere('layanan.tgl_keluar is null')
       ->andWhere('layanan.deleted_at is null')
       ->orderBy(['layanan.tgl_masuk' => SORT_DESC])
       ->limit($limit)->asArray()->all();

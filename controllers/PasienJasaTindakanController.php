@@ -119,7 +119,7 @@ class PasienJasaTindakanController extends Controller
       $biaya = HelperSpesial::getHitungBiayaTindakan(TarifTindakan::find()->where(['id' => $model->tarif_tindakan_id])->asArray()->one(), false);
 
       $model->harga = intval($biaya['standar']); //harga standar
-      
+
       if ($model->cyto == 1 && $biaya['cyto'] > $biaya['standar']) {
         $model->harga = intval($biaya['cyto']); //harga cyto
       }

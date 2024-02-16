@@ -5,6 +5,7 @@
 use app\assets\AppAsset;
 use app\widgets\Alert;
 use yii\helpers\Html;
+use yii\helpers\Url;
 
 \hail812\adminlte3\assets\FontAwesomeAsset::register($this);
 \hail812\adminlte3\assets\AdminLteAsset::register($this);
@@ -28,6 +29,7 @@ $dist_adminlte = Yii::$app->assetManager->getPublishedUrl('@vendor/almasaeed2010
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <?php $this->registerCsrfMetaTags() ?>
   <title><?= Html::encode($this->title) ?></title>
+  <link rel="shortcut icon" type="image/x-icon" href="<?= Url::to('@web/icon/favicon.ico') ?>">
   <script>
     const baseUrl = '<?= Yii::$app->request->baseUrl ?>';
     let controller = '<?= Yii::$app->controller->id ?>';

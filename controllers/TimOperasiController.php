@@ -78,6 +78,7 @@ class TimOperasiController extends Controller
       return $this->redirect(Url::to(['/site/index/']));
     }
 
+
     $icu = $chk_pasien->data['unit_kode'] != LayananOperasiSearch::RUANG_ICU;
     $picu = $chk_pasien->data['unit_kode'] != LayananOperasiSearch::RUANG_PICU;
     $ricu = $chk_pasien->data['unit_kode'] != LayananOperasiSearch::RUANG_RICU;
@@ -85,6 +86,8 @@ class TimOperasiController extends Controller
     if ($icu && $picu && $ricu) {
       return $this->redirect(Url::to(['/tim-operasi/create-ok/', 'id' => $plid]));
     }
+
+    $data = $this->getRiwayatOperasi($chk_pasien->data['registrasi_kode']);
 
     $model = $this->initModelCreate2($plid);
     $modelDetails = [new TimOperasiDetail()];
@@ -101,14 +104,16 @@ class TimOperasiController extends Controller
         'model' => $model,
         'modelDetails' => $modelDetails,
         'chk_pasien' => $chk_pasien->data,
-        'referensi' => $referensi
+        'referensi' => $referensi,
+        'data_riwayat' => $data
       ]);
     } else {
       return $this->render('_form_create_ruang_lainnya', [
         'model' => $model,
         'modelDetails' => $modelDetails,
         'chk_pasien' => $chk_pasien->data,
-        'referensi' => $referensi
+        'referensi' => $referensi,
+        'data_riwayat' => $data
       ]);
     }
   }
@@ -121,6 +126,8 @@ class TimOperasiController extends Controller
     if (!$chk_pasien->status) {
       return $this->redirect(Url::to(['/site/index/']));
     }
+
+    $data = $this->getRiwayatOperasi($chk_pasien->data['registrasi_kode']);
 
     $model = $this->initModelCreateOk($plid);
     $modelDetails = [new TimOperasiDetail()];
@@ -135,16 +142,34 @@ class TimOperasiController extends Controller
         'model' => $model,
         'modelDetails' => $modelDetails,
         'chk_pasien' => $chk_pasien->data,
-        'referensi' => $referensi
+        'referensi' => $referensi,
+        'data_riwayat' => $data
       ]);
     } else {
       return $this->render('_form_create_ok', [
         'model' => $model,
         'modelDetails' => $modelDetails,
         'chk_pasien' => $chk_pasien->data,
-        'referensi' => $referensi
+        'referensi' => $referensi,
+        'data_riwayat' => $data
       ]);
     }
+  }
+
+  public function getRiwayatOperasi($id)
+  {
+    $query_data = "SELECT tp.to_tanggal_operasi AS tanggal, tp.to_tindakan_operasi AS tindakan, l.jenis_layanan, l.registrasi_kode AS reg_kode, u.nama AS unit
+    FROM bedah_sentral.tim_operasi AS tp
+    LEFT JOIN pendaftaran.layanan AS l ON tp.to_ruang_asal_pl_id = l.id
+    LEFT JOIN pegawai.dm_unit_penempatan AS u ON l.unit_kode = u.kode
+    WHERE l.registrasi_kode = :reg_kode AND l.deleted_at IS NULL AND tp.to_deleted_at IS NULL
+    ORDER BY tp.to_created_at DESC;
+    ";
+    $data = Yii::$app->db->createCommand($query_data, [
+      ':reg_kode' => $id,
+    ])->queryAll();
+
+    return $data;
   }
 
   public function actionCreate()
@@ -253,7 +278,7 @@ class TimOperasiController extends Controller
       if ($model->validate() && Model::validateMultiple($modelDetail)) {
         $save = $this->save($title, $modelLog, $model, $modelDetail);
         if ($save->status) {
-          return MakeResponse::create(true, $save->msg, ['konfirm_final' => false, 'id' => HelperGeneral::hashData($save->data['to_ok_pl_id']), 'subid' => $save->data['to_id']]);
+          return MakeResponse::create(true, $save->msg, ['konfirm_final' => false, 'id' => $save->data['to_ok_pl_id'], 'subid' => $save->data['to_id']]);
         } else {
           return MakeResponse::create(false, $save->msg);
         }
@@ -289,7 +314,7 @@ class TimOperasiController extends Controller
       if ($model->validate() && Model::validateMultiple($modelDetail)) {
         $save = $this->save($title, $modelLog, $model, $modelDetail);
         if ($save->status) {
-          return MakeResponse::create(true, $save->msg, ['konfirm_final' => false, 'id' => HelperGeneral::hashData($save->data['to_ok_pl_id']), 'subid' => $save->data['to_id']]);
+          return MakeResponse::create(true, $save->msg, ['konfirm_final' => false, 'id' => $save->data['to_ok_pl_id'], 'subid' => $save->data['to_id']]);
         } else {
           return MakeResponse::create(false, $save->msg);
         }
@@ -336,7 +361,7 @@ class TimOperasiController extends Controller
       if ($model->validate() && Model::validateMultiple($modelDetail)) {
         $save = $this->save($title, $modelLog, $model, $modelDetail);
         if ($save->status) {
-          return MakeResponse::create(true, $save->msg, ['konfirm_final' => false, 'konfirm_batal' => false, 'id' => HelperGeneral::hashData($save->data['to_ok_pl_id'])]);
+          return MakeResponse::create(true, $save->msg, ['konfirm_final' => false, 'konfirm_batal' => false, 'id' => $save->data['to_ok_pl_id']]);
         } else {
           return MakeResponse::create(false, $save->msg);
         }
@@ -435,7 +460,7 @@ class TimOperasiController extends Controller
     if ($model->validate()) {
       $save = $this->save($title, $modelLog, $model, [], false, false, true);
       if ($save->status) {
-        return MakeResponse::create(true, $save->msg, ['id' => HelperGeneral::hashData($save->data['to_id'])]);
+        return MakeResponse::create(true, $save->msg, ['id' => $save->data['to_id']]);
       } else {
         return MakeResponse::create(false, $save->msg);
       }
@@ -510,5 +535,42 @@ class TimOperasiController extends Controller
     return $this->render('view', [
       'model' => $this->findModel($to_id),
     ]);
+  }
+
+  public function actionCariDataOperasi()
+  {
+    $id_layanan = $this->request->post('id_layanan');
+
+    if (!empty($id_layanan)) {
+
+      $query = "SELECT l.registrasi_kode
+              FROM pendaftaran.layanan AS l
+              WHERE l.id = :id_layanan";
+      $get_regis_kode = Yii::$app->db->createCommand($query, [
+        ':id_layanan' => $id_layanan
+      ])->queryOne();
+
+      $query_data = "SELECT tp.to_tanggal_operasi AS tanggal, tp.to_tindakan_operasi AS tindakan, l.jenis_layanan, l.registrasi_kode AS reg_kode, u.nama AS unit
+                FROM bedah_sentral.tim_operasi AS tp
+                LEFT JOIN pendaftaran.layanan AS l ON tp.to_ruang_asal_pl_id = l.id
+                LEFT JOIN pegawai.dm_unit_penempatan AS u ON l.unit_kode = u.kode
+                WHERE l.registrasi_kode = :reg_kode AND l.deleted_at IS NULL AND tp.to_deleted_at IS NULL
+                ORDER BY tp.to_created_at DESC;
+                ";
+      $data = Yii::$app->db->createCommand($query_data, [
+        ':reg_kode' => $get_regis_kode['registrasi_kode'],
+      ])->queryAll();
+    } else {
+      $data = null;
+    }
+
+    if ($data) {
+      $resp['status'] = true;
+      $resp['data'] = $data;
+    } else {
+      $resp['status'] = false;
+      $resp['data'] = 'Data tidak ditemukan!!';
+    }
+    echo json_encode($resp);
   }
 }

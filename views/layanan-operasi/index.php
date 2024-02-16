@@ -110,11 +110,11 @@ $this->registerJs($this->render('script.js'));
             'headerOptions' => ['style' => 'text-align: center;width:115px'],
             'contentOptions' => ['style' => 'text-align: center;width:115px'],
             'value' => function ($model) {
-              // $tim = TimOperasi::find()->where(['to_ok_pl_id' => $model->id])->all();
-              foreach ($model->timOperasi as $key => $value) {
-                // return Yii::$app->formatter->asDate($value->to_tanggal_operasi);
-                return $value->to_tanggal_operasi ? Yii::$app->formatter->asDate($value->to_tanggal_operasi) : "KOSONG";
-              }
+              return $model->timOperasi ?  Yii::$app->formatter->asDate($model->timOperasi[0]->to_tanggal_operasi) : "Belum Diisi !!";
+
+              // foreach ($model->timOperasi as $key => $value) {
+              //   return $value->to_tanggal_operasi ? Yii::$app->formatter->asDate($value->to_tanggal_operasi) : "KOSONG";
+              // }
             },
             // 'filter' => true,
             'filter' => DatePicker::widget([
@@ -137,11 +137,7 @@ $this->registerJs($this->render('script.js'));
             'contentOptions' => ['style' => 'text-align: center;'],
             'format' => 'html',
             'value' => function ($model) {
-              // $tim = TimOperasi::find()->where(['to_ok_pl_id' => $model->id])->all();
-              // foreach ($tim as $key => $value) {
-              // return ($value->layanan->unit ? str_replace(["RUANG", "POLI"], [""], $value->layanan->unit->nama) : "KOSONG");
-              return ($model->unitAsal ? str_replace(["RUANG", "POLI"], [""], $model->unitAsal->nama) : "KOSONG");
-              // }
+              return ($model->unitAsal ? str_replace(["RUANG", "POLI"], [""], $model->unitAsal->nama) : "Unit Kosong !!");
             },
             'filter' => Select2::widget([
               'model' => $searchModel,
@@ -164,9 +160,11 @@ $this->registerJs($this->render('script.js'));
             'contentOptions' => ['style' => 'text-align: center;width:150px'],
             'format' => 'html',
             'value' => function ($model) {
-              foreach ($model->timOperasi as $key => $timoperasi) {
-                return ($timoperasi->unit ? str_replace("KAMAR OPERASI", "", $timoperasi->unit->nama) : "KOSONG");
-              }
+              return $model->unit ? str_replace("KAMAR OPERASI", "", $model->unit->nama) : "Unit Kosong !!";
+
+              // foreach ($model->timOperasi as $key => $timoperasi) {
+              //   return ($timoperasi->unit ? str_replace("KAMAR OPERASI", "", $timoperasi->unit->nama) : "KOSONG");
+              // }
             },
             'filter' => Select2::widget([
               'model' => $searchModel,
@@ -189,11 +187,11 @@ $this->registerJs($this->render('script.js'));
             'headerOptions' => ['style' => 'text-align: center;'],
             'contentOptions' => ['style' => 'text-align: center;'],
             'value' => function ($model) {
-              // $tim = TimOperasi::find()->where(['to_ok_pl_id' => $model->id])->all();
-              foreach ($model->timOperasi as $key => $value) {
-                // return $value->to_tindakan_operasi;
-                return $value->to_tindakan_operasi ? $value->to_tindakan_operasi : "KOSONG";
-              }
+              return $model->timOperasi ? $model->timOperasi[0]->to_tindakan_operasi : "Belum Diisi !!";
+
+              // foreach ($model->timOperasi as $key => $value) {
+              //   return $value->to_tindakan_operasi ? $value->to_tindakan_operasi : "KOSONG";
+              // }
             },
             'filterInputOptions' => [
               'class' => 'form-control',
@@ -208,11 +206,11 @@ $this->registerJs($this->render('script.js'));
             'headerOptions' => ['style' => 'text-align: center;'],
             'contentOptions' => ['style' => 'text-align: center;'],
             'value' => function ($model) {
-              // $tim = TimOperasi::find()->where(['to_ok_pl_id' => $model->id])->all();
-              foreach ($model->timOperasi as $key => $value) {
-                // return HelperSpesial::getNamaPegawai($value->createdby->pegawai);
-                return $value->createdby ? $value->createdby->username : "KOSONG";
-              }
+              return $model->timOperasi ? $model->timOperasi[0]->createdby->username : "Tidak Ditemukan !!";
+
+              // foreach ($model->timOperasi as $key => $value) {
+              //   return $value->createdby ? $value->createdby->username : "KOSONG";
+              // }
             },
             // 'filterInputOptions' => [
             //   'class' => 'form-control',
@@ -228,11 +226,14 @@ $this->registerJs($this->render('script.js'));
             'headerOptions' => ['style' => 'text-align: center;'],
             'contentOptions' => ['style' => 'text-align: center;font-size:19px'],
             'value' => function ($model) {
+              $to_created = $model->timOperasi ? $model->timOperasi[0]->to_created_by : '';
+              $to_id = $model->timOperasi ? $model->timOperasi[0]->to_id : '';
+
               $id_pegawai = Akun::user()->id_pegawai;
-              foreach ($model->timOperasi as $key => $value) {
-                $cek = TimOperasiDetail::find()->where(['tod_pgw_id' => $id_pegawai, 'tod_to_id' => $value->to_id])->one();
-                return ($value->to_created_by == Akun::user()->id) || ($cek) ? '<span class="badge badge-success">Pasien Anda</span>' : '<span class="badge badge-danger">Kamu Belum Terdaftar</span>';
-              }
+              // foreach ($model->timOperasi as $key => $value) {
+              $cek = TimOperasiDetail::find()->where(['tod_pgw_id' => $id_pegawai, 'tod_to_id' => $to_id])->one();
+              return ($to_created == Akun::user()->id) || ($cek) ? '<span class="badge badge-success">Pasien Anda</span>' : '<span class="badge badge-danger">Kamu Belum Terdaftar</span>';
+              // }
             },
             'filter' => Html::activeDropDownList($searchModel, 'status', [Akun::user()->id_pegawai => 'Pasien Anda'], ['class' => 'form-control', 'prompt' => 'Lihat Semua']),
           ],
@@ -245,48 +246,50 @@ $this->registerJs($this->render('script.js'));
             'headerOptions' => ['style' => 'text-align: center;'],
             'contentOptions' => ['style' => 'text-align: center;font-size:19px'],
             'value' => function ($model) {
-              // echo '<pre>';print_r($model);die;
-              // $tim = TimOperasi::find()->where(['to_ok_pl_id' => $model->id])->all();
-              // $id_pegawai = Akun::user()->id_pegawai;
-              foreach ($model->timOperasi as $key => $value) {
-                $cek = LaporanOperasi::find()->where(['lap_op_to_id' => $value->to_id, 'lap_op_final' => 1, 'lap_op_batal' => 0, 'lap_op_created_by' => Akun::user()->id])->one();
-                return ($cek) ? '<span class="badge badge-success">SUDAH FINAL</span>' : '<span class="badge badge-danger">BELUM FINAL</span>';
-              }
+              $to_id = $model->timOperasi ? $model->timOperasi[0]->to_id : '';
+
+              // foreach ($model->timOperasi as $key => $value) {
+              $cek = LaporanOperasi::find()->where(['lap_op_to_id' => $to_id, 'lap_op_final' => 1, 'lap_op_batal' => 0, 'lap_op_created_by' => Akun::user()->id])->one();
+              return ($cek) ? '<span class="badge badge-success">SUDAH FINAL</span>' : '<span class="badge badge-danger">BELUM FINAL</span>';
+              // }
             },
             // 'filter' => Html::activeDropDownList($searchModel, 'status', [Akun::user()->id_pegawai => 'Pasien Anda'], ['class' => 'form-control', 'prompt' => 'Lihat Semua']),
           ],
 
           [
             'class' => 'yii\grid\ActionColumn',
-            'header' => 'Aksi',
+            'header' => 'AKSI',
             'headerOptions' => ['style' => 'width:8%;text-align: center;color:#000;'],
             'contentOptions' => ['style' => 'text-align: center'],
             'template' => '{pilih}{delete}',
             'buttons' => [
               'delete' => function ($url, $model) {
-                foreach ($model->timOperasi as $key => $value) {
-                  if (($value->to_created_by == Akun::user()->id) || (Akun::user()->username == Yii::$app->params['other']['username_root_bedah_sentral'])) {
-                    $url = Url::to(['/tim-operasi/hapus', 'subid' => $value->to_id]);
+                $to_created = $model->timOperasi ? $model->timOperasi[0]->to_created_by : '';
+                $to_id = $model->timOperasi ? $model->timOperasi[0]->to_id : '';
 
-                    return '<a href="#" class="btn btn-danger btn-xs btn-delete m-1" data-url="' . $url . '" data-key="tes" data-layanan="index" data-id="0" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="Hapus">
+                // foreach ($model->timOperasi as $key => $value) {
+                if (($to_created == Akun::user()->id) || (Akun::user()->username == Yii::$app->params['other']['username_root_bedah_sentral'])) {
+                  $url = Url::to(['/tim-operasi/hapus', 'subid' => $to_id]);
+
+                  return '<a href="#" class="btn btn-danger btn-xs btn-delete m-1" data-url="' . $url . '" data-key="tes" data-layanan="index" data-id="0" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="Hapus">
                       <span class="fas fa-trash fa-xs text-white"></span>
                     </a>';
-                  }
                 }
+                // }
               },
               'pilih' => function ($url, $model) {
-                foreach ($model->timOperasi as $key => $value) {
-                  $url = Url::to(['/site-pasien/index', 'id' => $model->id, 'tim_operasi_id' => $value->to_id]);
+                $to_id = $model->timOperasi ? $model->timOperasi[0]->to_id : '';
+                // foreach ($model->timOperasi as $key => $value) {
+                $url = Url::to(['/site-pasien/index', 'id' => $model->id, 'tim_operasi_id' => $to_id]);
 
-                  return '<a href="#" id="pilih" data-url="' . $url . '" class="btn btn-primary btn-xs m-1" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="Klik Untuk Pilih Pasien" onclick="localStorage.setItem(\'layanan\', \'index\')">
+                return '<a href="#" id="pilih" data-url="' . $url . '" class="btn btn-primary btn-xs m-1" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="Klik Untuk Pilih Pasien" onclick="localStorage.setItem(\'layanan\', \'index\')">
                     <span class="text-white">PILIH</span>
                   </a>';
-                }
+                // }
               }
             ]
           ],
         ],
-        // 'summaryOptions' => ['class' => 'summary mt-2 mb-2'],
         'pager' => [
           'class' => 'app\components\GridPager',
         ],

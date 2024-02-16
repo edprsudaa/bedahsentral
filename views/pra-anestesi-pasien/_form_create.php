@@ -566,7 +566,7 @@ $form = ActiveForm::begin([
           echo $form->field($model, 'ppa_final')->widget(SwitchInput::classname(), [
             'pluginOptions' => [
               'size' => 'mini',
-              'onText' => 'Final','handleWidth' => 50,
+              'onText' => 'Final', 'handleWidth' => 50,
               'offText' => 'Draf',
               'onColor' => 'success',
               'offColor' => 'danger',

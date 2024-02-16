@@ -28,6 +28,12 @@ class Akun
     $obj->username = !$user->isGuest ? $user->identity->kodeAkun : NULL;
     $obj->namatanpagelar = !$user->isGuest ? $user->identity->nama : NULL;
     $obj->name = !$user->isGuest ? HelperSpesial::getNamaPegawai($pegawai) : NULL;
+    // link untuk menampilkan foto profile
+    if ($pegawai->profile_path) {
+      $obj->photo = "http://123.231.247.213/rsud-app/web/file/profil/" . $pegawai->profile_path;
+    } else {
+      $obj->photo = Yii::$app->homeUrl . "images/avatar.jpg";
+    }
     return $obj;
   }
 

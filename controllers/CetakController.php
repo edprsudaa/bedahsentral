@@ -3,8 +3,11 @@
 namespace app\controllers;
 
 use app\components\HelperGeneral;
+use app\components\HelperSpesial;
 use app\models\bedahsentral\LaporanOperasi;
+use app\models\bedahsentral\PembatalanOperasi;
 use app\models\bedahsentral\TimOperasi;
+use app\models\bedahsentral\TimOperasiDetail;
 use app\models\pendaftaran\Layanan;
 use Mpdf\Mpdf;
 use Yii;
@@ -40,6 +43,44 @@ class CetakController extends Controller
   //     ],
   //   ];
   // }
+  public function actionCetakPembatalanOperasi($id)
+  {
+    $pembatalan = PembatalanOperasi::findOne(['bat_id' => $id]);
+    $pembatalan->bat_alasan_pasien = json_decode($pembatalan->bat_alasan_pasien);
+    $pembatalan->bat_alasan_operator = json_decode($pembatalan->bat_alasan_operator);
+    $pembatalan->bat_alasan_faskamop = json_decode($pembatalan->bat_alasan_faskamop);
+    $pembatalan->bat_alasan_ruang_perawatan = json_decode($pembatalan->bat_alasan_ruang_perawatan);
+
+    $timoperasi = TimOperasi::findOne(['to_id' => $pembatalan->bat_to_id]);
+    $timoperasidetail = TimOperasiDetail::find()->where(['tod_to_id' => $pembatalan->bat_to_id])->all();
+    $data_pasien = HelperSpesial::getCheckPasien($timoperasi->to_ok_pl_id);
+
+    $data_cetak =  $this->renderPartial('/pembatalan-operasi/doc', [
+      'model' => $pembatalan,
+      'timoperasi' => $timoperasi,
+      'timoperasidetail' => $timoperasidetail,
+      'data_pasien' => $data_pasien->data
+    ]);
+    $pdf = new Mpdf(['tempDir' => sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'mpdf']);
+    $pdf->AddPageByArray([
+      'orientation' => 'P',
+      'sheet-size' => 'LEGAL',
+      'margin-top' => 10,
+      'margin-right' => 15,
+      'margin-left' => 15,
+      'margin-bottom' => 10,
+    ]);
+    $pdf->simpleTables = true;
+    $pdf->packTableData = true;
+    $pdf->useSubstitutions = false;
+    $pdf->autoPageBreak = true;
+    $pdf->showImageErrors = true;
+    $pdf->shrink_tables_to_fit = 1;
+    $pdf->WriteHTML($data_cetak);
+    $pdf->Output(date('d-m-Y H:i:s') . '.pdf', \Mpdf\Output\Destination::INLINE);
+    exit();
+  }
+
   public function actionCetakLaporanOperasi($laporan_id)
   {
     if (!is_numeric($laporan_id)) {

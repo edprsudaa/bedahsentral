@@ -38,18 +38,6 @@ class SiteController extends Controller
         ],
       ],
     ];
-    // return [
-    //   'access' => [
-    //     'class' => AccessControl::className(),
-    //     'rules' => [
-    //       [
-    //         'actions' => ['logout', 'index'],
-    //         'allow' => true,
-    //         'roles' => ['@'],
-    //       ]
-    //     ],
-    //   ],
-    // ];
   }
 
   public function actions()
@@ -57,6 +45,7 @@ class SiteController extends Controller
     return [
       'error' => [
         'class' => 'yii\web\ErrorAction',
+        // 'layout' => 'error-layout',
       ],
       'captcha' => [
         'class' => 'yii\captcha\CaptchaAction',
@@ -70,26 +59,4 @@ class SiteController extends Controller
 
     return $this->render('index');
   }
-
-  // public function actionKembali()
-  // {
-  //   $layanan = Yii::$app->request->post('layanan');
-  //   $unit_id = Yii::$app->request->post('unit_id');
-
-  //   if ($layanan === "pasien_pulang") {
-  //     return $this->redirect(Url::to(['/layanan-operasi/pasien-selesai-operasi']));
-  //   } elseif ($layanan === "pasien_ruang_lainnya") {
-  //     return $this->redirect(Url::to(['/layanan-operasi/ruangan-lainnya']));
-  //   } elseif ($layanan === "pasien_operasi") {
-  //     if ($unit_id == LayananOperasiSearch::KAMAR_OK_IBS) {
-  //       return $this->redirect(Url::to(['/layanan-operasi/pasien-operasi', 'kamar' => $unit_id]));
-  //     } elseif ($unit_id == LayananOperasiSearch::KAMAR_OK_IRD) {
-  //       return $this->redirect(Url::to(['/layanan-operasi/pasien-operasi', 'kamar' => $unit_id]));
-  //     } else {
-  //       return $this->redirect(Url::to(['/layanan-operasi/pasien-operasi', 'kamar' => $unit_id]));
-  //     }
-  //   } else {
-  //     return $this->redirect(Url::to(['/layanan-operasi/index']));
-  //   }
-  // }
 }

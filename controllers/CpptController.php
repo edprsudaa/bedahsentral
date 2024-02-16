@@ -39,7 +39,6 @@ class CpptController extends Controller
     $plid = HelperGeneral::convertLayananId($id);
     // $chk_pasien = HelperSpesial::getCheckPasien($plid);
     $timoperasi = TimOperasi::find()->where(['to_ok_pl_id' => $plid])->one();
-    $idhash = HelperGeneral::hashData($timoperasi->to_ruang_asal_pl_id);
     // echo '<pre>';
     // print_r($idhash);
     // die;

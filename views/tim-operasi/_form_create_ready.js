@@ -280,4 +280,69 @@ $(document).ready(function () {
     e.stopImmediatePropagation();
     $.pjax.reload({ container: "#pjform", timeout: false }); //pjax form
   });
+
+  $(document).on("change", "#rm_pasien", function (e) {
+    let id_layanan = $("#rm_pasien").val();
+    $.post(
+      baseUrl + "/tim-operasi/cari-data-operasi",
+      {
+        id_layanan: id_layanan,
+      },
+      function (data) {
+        let datatabel = "";
+        let no = 1;
+        var res = JSON.parse(data);
+
+        if (res.status) {
+          datatabel += `<tr>
+                          <td colspan="4" style="background-color:green"></td>
+                        </tr>`;
+
+          res.data.map((datat) => {
+            // Misalkan datat.tanggal berisi tanggal dalam format "yyyy-mm-dd"
+            let split_tgl = datat.tanggal.split("-");
+            let tgl = split_tgl[2] + "-" + split_tgl[1] + "-" + split_tgl[0];
+
+            datatabel += `<tr>
+                            <td rowspan="4">${no++}.</td>
+                            <td style="width:29%;">No.Registrasi</td>
+                            <td style="width:1%;">:</td>
+                            <td><b>${datat.reg_kode}</b></td>
+                          </tr>
+                          <tr>
+                            <td>Tanggal Operasi</td>
+                            <td>:</td>
+                            <td><b>${tgl}</b></td>
+                          </tr>
+                          <tr>
+                            <td>Tindakan</td>
+                            <td>:</td>
+                            <td><b>${datat.tindakan}</b></td>
+                          </tr>
+                          <tr>
+                            <td>Ruangan</td>
+                            <td>:</td>
+                            <td><b>${datat.unit}</b></td>
+                          </tr>
+                          <tr>
+                            <td colspan="4" style="background-color:green"></td>
+                          </tr>
+                          `;
+          });
+        } else {
+          datatabel = `<tr>
+                        <td style="background-color:green"></td>
+                      </tr>
+                      <tr>
+                        <td class="text-center">${res.data}</td>
+                      </tr>
+                      <tr>
+                        <td style="background-color:green"></td>
+                      </tr>`;
+        }
+
+        $("#datatabel").html(datatabel);
+      }
+    );
+  });
 });
